@@ -12,6 +12,7 @@ import com.nimaptask.demo.entity.Category;
 import com.nimaptask.demo.repository.CategoryRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -22,10 +23,7 @@ public class CategorieController {
 	 @Autowired
 	    private CategoryRepository categoryRepository;
 
-//	    @GetMapping
-//	    public ResponseEntity<Page<Category>> getAllCategories(@RequestParam(defaultValue = "0") int page) {
-//	        return new ResponseEntity<>(categoryRepository.findAll(PageRequest.of(page, 10)), HttpStatus.OK);
-//	    }
+
 	    
 	    @GetMapping
 	    public ResponseEntity<List<Category>> getAllCategories(@RequestParam(defaultValue = "0") int page) {
@@ -41,29 +39,44 @@ public class CategorieController {
 
 	    @GetMapping("/{id}")
 	    public ResponseEntity<Category> getCategoryById(@PathVariable int id) {
-	        return categoryRepository.findById(id)
-	                .map(category -> new ResponseEntity<>(category, HttpStatus.OK))
-	                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+	        Optional<Category> optionalCategory = categoryRepository.findById(id);
+
+	        if (optionalCategory.isPresent()) {
+	            Category category = optionalCategory.get();
+	            return new ResponseEntity<>(category, HttpStatus.OK);
+	        } else {
+	            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	        }
 	    }
 
 	    @PutMapping("/{id}")
 	    public ResponseEntity<Category> updateCategory(@PathVariable int id, @RequestBody Category categoryDetails) {
-	        return categoryRepository.findById(id)
-	                .map(category -> {
-	                    category.setCategory_name(categoryDetails.getCategory_name());
-	                    return new ResponseEntity<>(categoryRepository.save(category), HttpStatus.OK);
-	                })
-	                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+	        Optional<Category> optionalCategory = categoryRepository.findById(id);
+
+	        if (optionalCategory.isPresent()) {
+	            Category category = optionalCategory.get();
+	            category.setCategory_name(categoryDetails.getCategory_name());
+	            category.setCategory_discription(categoryDetails.getCategory_discription());
+	            Category updatedCategory = categoryRepository.save(category);
+	            return new ResponseEntity<>(updatedCategory, HttpStatus.OK);
+	        } else {
+	            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	        }
 	    }
+	    
+
 
 	    @DeleteMapping("/{id}")
 	    public ResponseEntity<Void> deleteCategory(@PathVariable int id) {
-	        return categoryRepository.findById(id)
-	                .map(category -> {
-	                    categoryRepository.delete(category);
-	                    return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
-	                })
-	                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+	      Optional<Category> data = categoryRepository.findById(id);
+	      if(data == null)
+	    	  return  new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
+	      else	
+	      {
+	    	  categoryRepository.deleteById(id);
+	    	  return new ResponseEntity<>(HttpStatus.OK);
+	      }
+	       
 	    }
 	
 	

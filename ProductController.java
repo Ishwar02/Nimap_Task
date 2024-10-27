@@ -12,6 +12,7 @@ import com.nimaptask.demo.entity.Product;
 import com.nimaptask.demo.repository.ProductRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -21,10 +22,7 @@ public class ProductController {
 	 @Autowired
 	    private ProductRepository productRepository;
 
-//	    @GetMapping
-//	    public ResponseEntity<Page<Product>> getAllProducts(@RequestParam(defaultValue = "0") int page) {
-//	        return new ResponseEntity<>(productRepository.findAll(PageRequest.of(page, 10)), HttpStatus.OK);
-//	    }
+
 	    
 	    @GetMapping
 	    public ResponseEntity<List<Product>> getAllProducts(@RequestParam(defaultValue = "0") int page) {
@@ -39,29 +37,45 @@ public class ProductController {
 
 	    @GetMapping("/{id}")
 	    public ResponseEntity<Product> getProductById(@PathVariable int id) {
-	        return productRepository.findById(id)
-	                .map(product -> new ResponseEntity<>(product, HttpStatus.OK))
-	                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+	        Optional<Product> optionalProduct = productRepository.findById(id);
+
+	        if (optionalProduct.isPresent()) {
+	            Product product = optionalProduct.get();
+	            return new ResponseEntity<>(product, HttpStatus.OK);
+	        } else {
+	            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	        }
 	    }
+
 
 	    @PutMapping("/{id}")
 	    public ResponseEntity<Product> updateProduct(@PathVariable int id, @RequestBody Product productDetails) {
-	        return productRepository.findById(id)
-	                .map(product -> {
-	                    product.setProduct_name(productDetails.getProduct_name());
-	                    product.setPrice(productDetails.getPrice());
-	                    return new ResponseEntity<>(productRepository.save(product), HttpStatus.OK);
-	                })
-	                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+	        Optional<Product> optionalProduct = productRepository.findById(id);
+
+	        if (optionalProduct.isPresent()) {
+	            Product product = optionalProduct.get();
+	            product.setProduct_name(productDetails.getProduct_name());
+	            product.setPrice(productDetails.getPrice());
+	            product.setProduct_discription(productDetails.getProduct_discription());
+	            Product updatedProduct = productRepository.save(product);
+	            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+	        } else {
+	            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	        }
 	    }
+
 
 	    @DeleteMapping("/{id}")
 	    public ResponseEntity<Void> deleteProduct(@PathVariable int id) {
-	        return productRepository.findById(id)
-	                .map(product -> {
-	                    productRepository.delete(product);
-	                    return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
-	                })
-	                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+	        Optional<Product> optionalProduct = productRepository.findById(id);
+
+	        if (optionalProduct.isPresent()) {
+	            Product product = optionalProduct.get();
+	            productRepository.delete(product);
+	            return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+	        } else {
+	            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	        }
 	    }
+
 }
